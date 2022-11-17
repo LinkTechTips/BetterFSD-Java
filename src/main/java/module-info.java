@@ -1,5 +1,5 @@
 module BetterFSD.Java {
-    uses org.LinkTechTips.plugins.IPluginService;
+    uses org.linktechtips.plugins.IPluginService;
     requires org.apache.commons.lang3;
     requires java.management;
     requires org.apache.commons.io;

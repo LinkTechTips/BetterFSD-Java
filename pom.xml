@@ -10,8 +10,8 @@
         <version>2.7.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>org.LinkTechTips</groupId>
-    <artifactId>BetterFSD-Java</artifactId>
+    <groupId>org.linktechtips</groupId>
+    <artifactId>betterfsd-java</artifactId>
     <version>1.0.0</version>
     <name>BetterFSD-Java</name>
     <description>Java refactoring version of BetterFSD</description>
@@ -99,4 +99,13 @@
             </plugin>
         </plugins>
     </build>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.linktechtips</groupId>
+                <artifactId>betterfsd-java</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

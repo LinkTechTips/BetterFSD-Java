@@ -1,2 +1,2 @@
 Manifest-Version: 1.0
-Main-Class: org.LinkTechTips.MainLauncher
+Main-Class: org.linktechtips.MainLauncher
