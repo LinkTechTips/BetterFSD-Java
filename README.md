@@ -1,4 +1,6 @@
 # BetterFSD Java Edition
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FLinkTechTips%2FBetterFSD-Java.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FLinkTechTips%2FBetterFSD-Java?ref=badge_shield)
+
 ## 关于
 本项目为 "Marty Bochane's FSD 2" C版本的Java重写，有问题欢迎提交issue或PR，您还可以加入用户交流QQ群 [723619450](https://jq.qq.com/?_wv=1027&k=Gugroyas)
 ## 君子协议
@@ -23,3 +25,6 @@ GPL-3.0第7节中的附加条款
 * 内置PDC
 * 内置语音实现
 * Remark同步
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FLinkTechTips%2FBetterFSD-Java.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FLinkTechTips%2FBetterFSD-Java?ref=badge_large)
