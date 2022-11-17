@@ -108,4 +108,13 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+    <distributionManagement>
+        <repository>
+            <!-- id 需要和 server id一致 -->
+            <id>github</id>
+            <!-- name, 可选 -->
+            <name>BetterFSD-Java</name>
+            <url>https://maven.pkg.github.com/LinkTechTips/BetterFSD-Java</url>
+        </repository>
+    </distributionManagement>
 </project>
