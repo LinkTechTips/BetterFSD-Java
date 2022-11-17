@@ -6,6 +6,8 @@
 ## 君子协议
 本项目基于 GPL-3.0 协议开源 若要使用本项目 请给本项目一个star
 
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FLinkTechTips%2FBetterFSD-Java.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FLinkTechTips%2FBetterFSD-Java?ref=badge_large)
+
 GPL-3.0第7节中的附加条款
 
 分发软件的修改版本时，必须以合理的方式更改软件名称或版本号，以便将其与原始版本区分开来
@@ -25,6 +27,3 @@ GPL-3.0第7节中的附加条款
 * 内置PDC
 * 内置语音实现
 * Remark同步
-
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FLinkTechTips%2FBetterFSD-Java.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FLinkTechTips%2FBetterFSD-Java?ref=badge_large)
