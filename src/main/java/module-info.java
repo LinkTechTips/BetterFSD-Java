@@ -1,8 +1,9 @@
 module BetterFSD.Java {
+    uses org.LinkTechTips.plugins.IPluginService;
     requires org.apache.commons.lang3;
-    requires org.jetbrains.annotations;
     requires java.management;
     requires org.apache.commons.io;
     requires jdk.httpserver;
+    requires org.jetbrains.annotations;
     requires slf4j.api;
 }

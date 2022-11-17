@@ -9,13 +9,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class PluginLoader {
     public static final String PLUGIN_PATH = "plugins";
 
-    public static List<PluginService> loadPlugins() throws MalformedURLException {
-        List<PluginService> plugins = new ArrayList<>();
+    public static List<IPluginService> loadPlugins() throws MalformedURLException {
+        List<IPluginService> plugins = new ArrayList<>();
 
         File parentDir = new File(PLUGIN_PATH);
         File[] files = parentDir.listFiles();
@@ -25,8 +24,7 @@ public class PluginLoader {
 
         // 从目录下筛选出所有jar文件
         List<File> jarFiles = Arrays.stream(files)
-                .filter(file -> file.getName().endsWith(".jar"))
-                .collect(Collectors.toList());
+                .filter(file -> file.getName().endsWith(".jar")).toList();
 
         URL[] urls = new URL[jarFiles.size()];
         for (int i = 0; i < jarFiles.size(); i++) {
@@ -36,9 +34,9 @@ public class PluginLoader {
 
         URLClassLoader urlClassLoader = new URLClassLoader(urls);
         // 使用 ServiceLoader 以SPI的方式加载插件包中的 PluginService 实现类
-        ServiceLoader<PluginService> serviceLoader = ServiceLoader.load(PluginService.class, urlClassLoader);
-        for (PluginService pluginService : serviceLoader) {
-            plugins.add(pluginService);
+        ServiceLoader<IPluginService> serviceLoader = ServiceLoader.load(IPluginService.class, urlClassLoader);
+        for (IPluginService IPluginService : serviceLoader) {
+            plugins.add(IPluginService);
         }
         return plugins;
     }

@@ -21,7 +21,7 @@ public class ReadWhazzupController implements HttpHandler {
     public void handle(HttpExchange httpExchange) {
         try {
             StringBuilder responseText = new StringBuilder();
-            String whazzup = FileUtils.readFileToString(new File(whazzupFile));
+            String whazzup = FileUtils.readFileToString(new File(whazzupFile),StandardCharsets.UTF_8);
             responseText.append(whazzup);
             handleResponse(httpExchange, responseText.toString());
         } catch (NullPointerException e) {
@@ -33,8 +33,7 @@ public class ReadWhazzupController implements HttpHandler {
     }
     private void handleResponse(HttpExchange httpExchange, String responsetext) throws Exception {
         //生成html
-        String responseContentStr = responsetext;
-        byte[] responseContentByte = responseContentStr.getBytes(StandardCharsets.UTF_8);
+        byte[] responseContentByte = responsetext.getBytes(StandardCharsets.UTF_8);
 
         //设置响应头，必须在sendResponseHeaders方法之前设置！
         httpExchange.getResponseHeaders().add("Content-Type:", "text/plain;charset=utf-8");

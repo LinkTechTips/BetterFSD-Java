@@ -12,7 +12,7 @@ import org.LinkTechTips.model.Certificate;
 import org.LinkTechTips.model.Client;
 import org.LinkTechTips.model.Flightplan;
 import org.LinkTechTips.model.Server;
-import org.LinkTechTips.plugins.PluginService;
+import org.LinkTechTips.plugins.IPluginService;
 import org.LinkTechTips.plugins.PluginLoader;
 import org.LinkTechTips.process.PMan;
 import org.LinkTechTips.process.config.ConfigEntry;
@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -44,8 +43,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+
 public class Main {
-    private final static Logger LOGGER = LoggerFactory.getLogger(Main.class);
+    private final static Logger LOGGER = getLogger(Main.class);
     public static ConfigManager configManager;
     public static ServerInterface serverInterface;
     public static SystemInterface systemInterface;
@@ -91,8 +93,8 @@ public class Main {
         makeConnections();
         LOGGER.info("[Plugins]: Start loading plugins");
         try {
-            List<PluginService> services = PluginLoader.loadPlugins();
-            for (PluginService service : services) {
+            List<IPluginService> services = PluginLoader.loadPlugins();
+            for (IPluginService service : services) {
                 LOGGER.info(String.format("[Plugins]: %s %s loaded successfully", service.PluginName(),
                         service.PlugunVersion()));
                 service.PluginService();

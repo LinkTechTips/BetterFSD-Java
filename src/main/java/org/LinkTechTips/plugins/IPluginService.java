@@ -4,7 +4,7 @@
 
 package org.LinkTechTips.plugins;
 
-public interface PluginService {
+public interface IPluginService {
     // 插件功能主入口方法
     void PluginService();
     // 插件名称
