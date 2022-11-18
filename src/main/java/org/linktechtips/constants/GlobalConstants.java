@@ -30,7 +30,7 @@ public class GlobalConstants {
     public static final int MAX_HOPS = 10;
     public static final int GUARD_RETRY = 120_000;
     public static final int CALLSIGN_BYTES = 12;
-    public static final int MAX_LINE_LENGTH = 512;
+    public static final int MAX_LINE_LENGTH = 1026;
     public static final int MAX_METAR_DOWNLOAD_TIME = 1600_000;
     public static final int CERT_FILE_CHECK = 30_000;
 
