@@ -6,4 +6,6 @@ module BetterFSD.Java {
     requires jdk.httpserver;
     requires org.jetbrains.annotations;
     requires slf4j.api;
+    requires java.sql;
+    requires mysql.connector.java;
 }

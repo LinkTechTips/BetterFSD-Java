@@ -27,6 +27,8 @@ import org.linktechtips.process.network.ServerInterface;
 import org.linktechtips.process.network.SystemInterface;
 import org.linktechtips.support.Support;
 import org.slf4j.Logger;
+import java.sql.Connection;
+import java.sql.DriverManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -61,9 +63,10 @@ public class Main {
     private String whazzupFile;
     private String whazzupjsonFile;
     private String mysqlmode;
-    private String sqlurl;
-    private String sqluser;
-    private String sqlpassword;
+    private static String sqlurl;
+    private static String sqluser;
+    private static String sqlpassword;
+    private static Connection conn = null;
     private long timer;
     private long prevNotify;
     private long prevLagCheck;
@@ -140,21 +143,37 @@ public class Main {
             ConfigEntry entry;
             ConfigGroup sysgroup = configManager.getGroup("system");
             if (sysgroup != null) {
-                if ((entry = sysgroup.getEntry("certificates")) != null) {
-                    certFile = entry.getData().toUpperCase();
-                    Path file = Paths.get(certFile);
-                    if (Files.exists(file)) {
-                        try {
-                            BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
-                            long fileLastModified = attr.lastModifiedTime().toMillis();
-                            prevCertCheck = now;
-                            if (certFileStat != fileLastModified) {
-                                certFileStat = fileLastModified;
-                                readCert();
+                if (Objects.equals(mysqlmode, "false")) {
+                    if ((entry = sysgroup.getEntry("certificates")) != null) {
+                        certFile = entry.getData().toUpperCase();
+                        Path file = Paths.get(certFile);
+                        if (Files.exists(file)) {
+                            try {
+                                BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
+                                long fileLastModified = attr.lastModifiedTime().toMillis();
+                                prevCertCheck = now;
+                                if (certFileStat != fileLastModified) {
+                                    certFileStat = fileLastModified;
+                                    readCert();
+                                }
+                            } catch (IOException e) {
+                                LOGGER.warn("[BetterFSD]: Read cert file info failed.", e);
                             }
-                        } catch (IOException e) {
-                            LOGGER.warn("[BetterFSD]: Read cert file info failed.", e);
                         }
+                    }
+                } else if (Objects.equals(mysqlmode, "true")) {
+                    if ((sysgroup.getEntry("sqlurl")) != null) {
+                        if ((sysgroup.getEntry("sqluser")) != null){
+                            if (sysgroup.getEntry("sqlpassword") != null) {
+                                readCert();
+                            } else {
+                                LOGGER.error("[BetterFSD]: Read mysql password info failed");
+                            }
+                        } else {
+                            LOGGER.error("[BetterFSD]: Read mysql user info failed");
+                        }
+                    } else {
+                        LOGGER.error("[BetterFSD]: Read mysql url info failed");
                     }
                 }
             }
@@ -462,7 +481,17 @@ public class Main {
         }
         if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
     }
-
+    public static Connection getConn() {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            conn = DriverManager.getConnection(sqlurl, sqluser, sqlpassword);
+            LOGGER.info("[BetterFSD]: Database connection established");
+        } catch (Exception e) {
+            LOGGER.error("[BetterFSD]: N/A Exception on loading mysql");
+            e.printStackTrace();
+        }
+        return conn;
+    }
     void readCert() {
         if (Objects.equals(mysqlmode, "false")) {
             if (StringUtils.isBlank(certFile)) return;
@@ -491,7 +520,7 @@ public class Main {
                 }
             }
         } else if (Objects.equals(mysqlmode, "true")) {
-            //TODO
+            getConn();
         }
     }
 
