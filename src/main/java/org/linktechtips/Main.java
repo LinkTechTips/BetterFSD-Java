@@ -27,8 +27,8 @@ import org.linktechtips.process.network.ServerInterface;
 import org.linktechtips.process.network.SystemInterface;
 import org.linktechtips.support.Support;
 import org.slf4j.Logger;
-import java.sql.Connection;
-import java.sql.DriverManager;
+
+import java.sql.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -64,6 +64,7 @@ public class Main {
     private String whazzupjsonFile;
     private String mysqlmode;
     private static String sqlurl;
+    private static String sqltable;
     private static String sqluser;
     private static String sqlpassword;
     private static Connection conn = null;
@@ -433,6 +434,9 @@ public class Main {
                     if ((entry = system.getEntry("sqlurl")) != null) {
                         sqlurl = entry.getData();
                     }
+                    if ((entry = system.getEntry("sqltable")) != null) {
+                        sqltable = entry.getData();
+                    }
                     if ((entry = system.getEntry("sqluser")) != null) {
                         sqluser = entry.getData();
                     }
@@ -448,11 +452,8 @@ public class Main {
                 whazzupjsonFile = entry.getData();
             }
     }
-
     configMyServer();
-
     readCert();
-
 }
 
     void handleCidLine(@NotNull String line) {
@@ -481,16 +482,14 @@ public class Main {
         }
         if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
     }
-    public static Connection getConn() {
+    public static void getConn() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             conn = DriverManager.getConnection(sqlurl, sqluser, sqlpassword);
-            LOGGER.info("[BetterFSD]: Database connection established");
-        } catch (Exception e) {
-            LOGGER.error("[BetterFSD]: N/A Exception on loading mysql");
+        } catch (ClassNotFoundException | SQLException e) {
+            LOGGER.info("[BetterFSD]: Exception in get mysql conn");
             e.printStackTrace();
         }
-        return conn;
     }
     void readCert() {
         if (Objects.equals(mysqlmode, "false")) {
@@ -521,6 +520,25 @@ public class Main {
             }
         } else if (Objects.equals(mysqlmode, "true")) {
             getConn();
+            LOGGER.info("[BetterFSD]: Reading certificates from database");
+            if (StringUtils.isEmpty(sqltable)) {
+                LOGGER.error("[BetterFSD]: sqltable is empty. Please check your config file");
+            } else if (sqltable != null) try {
+                String sql = "SELECT * FROM " + sqltable;
+                PreparedStatement preparedStatement = conn.prepareStatement(sql);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                while (resultSet.next()) {
+                    Certificate tempcert = new Certificate(resultSet.getString("cid"), resultSet.getString("password"),
+                            resultSet.getInt("level"), Support.mgmtime(), Server.myServer.getIdent());
+                    serverInterface.sendCert("*", ProtocolConstants.CERT_ADD, tempcert, null);
+                }
+                preparedStatement.close();
+                resultSet.close();
+                conn.close();
+            } catch (Exception e) {
+                LOGGER.error("[BetterFSD]: N/A Exception on reading mysql");
+                e.printStackTrace();
+            }
         }
     }
 
