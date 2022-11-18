@@ -5,6 +5,9 @@
 
 package org.linktechtips;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.jetbrains.annotations.NotNull;
 import org.linktechtips.constants.*;
 import org.linktechtips.httpapi.httpApiManage;
 import org.linktechtips.manager.Manage;
@@ -23,9 +26,6 @@ import org.linktechtips.process.network.ClientInterface;
 import org.linktechtips.process.network.ServerInterface;
 import org.linktechtips.process.network.SystemInterface;
 import org.linktechtips.support.Support;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -41,6 +41,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -59,6 +60,10 @@ public class Main {
     private String certFile;
     private String whazzupFile;
     private String whazzupjsonFile;
+    private String mysqlmode;
+    private String sqlurl;
+    private String sqluser;
+    private String sqlpassword;
     private long timer;
     private long prevNotify;
     private long prevLagCheck;
@@ -66,6 +71,7 @@ public class Main {
     private int fileOpen;
     private long prevCertCheck;
     private long prevWhazzup;
+
     public Main(String configFile) {
         LOGGER.info("[BetterFSD]: Booting Server");
         pManager = new PMan();
@@ -99,7 +105,7 @@ public class Main {
                         service.PlugunVersion()));
                 service.PluginService();
             }
-            LOGGER.info(String.format("[Plugins]: %s plugins loaded successfully",services.size()));
+            LOGGER.info(String.format("[Plugins]: %s plugins loaded successfully", services.size()));
         } catch (MalformedURLException e) {
             LOGGER.error("[Plugins]: Failed to load plugins");
             e.printStackTrace();
@@ -110,8 +116,10 @@ public class Main {
         prevWhazzup = Support.mtime();
         fileOpen = 0;
     }
+
     public void close() {
     }
+
     /* Here we do timeout checks. This function is triggered every second to
    reduce the load on the server */
     public void doChecks() {
@@ -396,19 +404,37 @@ public class Main {
             if ((entry = system.getEntry("systemport")) != null) {
                 systemPort = entry.getInt();
             }
-            if ((entry = system.getEntry("certificates")) != null) {
-                certFile = entry.getData();
+            if ((entry = system.getEntry("mysqlmode")) != null) {
+                mysqlmode = entry.getData();
+                if (Objects.equals(mysqlmode, "false")) {
+                    if ((entry = system.getEntry("certificates")) != null) {
+                        certFile = entry.getData();
+                    }
+                } else if (Objects.equals(mysqlmode, "true")) {
+                    if ((entry = system.getEntry("sqlurl")) != null) {
+                        sqlurl = entry.getData();
+                    }
+                    if ((entry = system.getEntry("sqluser")) != null) {
+                        sqluser = entry.getData();
+                    }
+                    if ((entry = system.getEntry("sqlpassword")) != null) {
+                        sqlpassword = entry.getData();
+                    }
+                }
             }
             if ((entry = system.getEntry("whazzup")) != null) {
                 whazzupFile = entry.getData();
             }
             if ((entry = system.getEntry("whazzupjson")) != null) {
-                whazzupjsonFile= entry.getData();
+                whazzupjsonFile = entry.getData();
             }
-        }
-        configMyServer();
-        readCert();
     }
+
+    configMyServer();
+
+    readCert();
+
+}
 
     void handleCidLine(@NotNull String line) {
         Certificate tempcert;
@@ -438,30 +464,34 @@ public class Main {
     }
 
     void readCert() {
-        if (StringUtils.isBlank(certFile)) return;
+        if (Objects.equals(mysqlmode, "false")) {
+            if (StringUtils.isBlank(certFile)) return;
 
-        List<String> lines;
-        File file = new File(certFile);
-        try {
-            lines = Files.readAllLines(Paths.get(certFile), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            LOGGER.error(String.format("[BetterFSD]: Could not open certificate file '%s'",
-                    file.getAbsolutePath()), e);
-            return;
-        }
-
-        for (Certificate temp : Certificate.certs) {
-            temp.setLiveCheck(0);
-        }
-        LOGGER.info(String.format("[BetterFSD]: Reading certificates from '%s'", certFile));
-        for (String line : lines) {
-            handleCidLine(line);
-        }
-        for (Certificate temp : Certificate.certs) {
-            if (temp.getLiveCheck() == 0) {
-                serverInterface.sendCert("*", ProtocolConstants.CERT_DELETE, temp, null);
-                temp.close();
+            List<String> lines;
+            File file = new File(certFile);
+            try {
+                lines = Files.readAllLines(Paths.get(certFile), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                LOGGER.error(String.format("[BetterFSD]: Could not open certificate file '%s'",
+                        file.getAbsolutePath()), e);
+                return;
             }
+
+            for (Certificate temp : Certificate.certs) {
+                temp.setLiveCheck(0);
+            }
+            LOGGER.info(String.format("[BetterFSD]: Reading certificates from '%s'", certFile));
+            for (String line : lines) {
+                handleCidLine(line);
+            }
+            for (Certificate temp : Certificate.certs) {
+                if (temp.getLiveCheck() == 0) {
+                    serverInterface.sendCert("*", ProtocolConstants.CERT_DELETE, temp, null);
+                    temp.close();
+                }
+            }
+        } else if (Objects.equals(mysqlmode, "true")) {
+            //TODO
         }
     }
 
