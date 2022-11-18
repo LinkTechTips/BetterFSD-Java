@@ -525,16 +525,35 @@ public class Main {
                 LOGGER.error("[BetterFSD]: sqltable is empty. Please check your config file");
             } else if (sqltable != null) try {
                 String sql = "SELECT * FROM " + sqltable;
-                PreparedStatement preparedStatement = conn.prepareStatement(sql);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                while (resultSet.next()) {
-                    Certificate tempcert = new Certificate(resultSet.getString("cid"), resultSet.getString("password"),
-                            resultSet.getInt("level"), Support.mgmtime(), Server.myServer.getIdent());
-                    serverInterface.sendCert("*", ProtocolConstants.CERT_ADD, tempcert, null);
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    String cid = rs.getString("cid");
+                    int level = rs.getInt("level");
+                    String pwd = rs.getString("password");
+                    Certificate tempcert = Certificate.getCert(cid);
+                    if (tempcert == null) {
+                        tempcert = new Certificate(cid, pwd, level, Support.mgmtime(), Server.myServer.getIdent());
+                        int mode = ProtocolConstants.CERT_ADD;
+                        if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
+                    } else {
+                        tempcert.setLiveCheck(1);
+                        if (tempcert.getPassword().equalsIgnoreCase(pwd) && level == tempcert.getLevel())
+                            return;
+                        tempcert.configure(pwd, level, Support.mgmtime(), Server.myServer.getIdent());
+                        int mode = ProtocolConstants.CERT_MODIFY;
+                        if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
+                    }
                 }
-                preparedStatement.close();
-                resultSet.close();
-                conn.close();
+                for (Certificate temp : Certificate.certs) {
+                    if (temp.getLiveCheck() == 0) {
+                        serverInterface.sendCert("*", ProtocolConstants.CERT_DELETE, temp, null);
+                        temp.close();
+                    }
+                }
+            } catch (SQLException e) {
+                LOGGER.error("[BetterFSD]: Exception in readCert");
+                e.printStackTrace();
             } catch (Exception e) {
                 LOGGER.error("[BetterFSD]: N/A Exception on reading mysql");
                 e.printStackTrace();
