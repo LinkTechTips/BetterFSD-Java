@@ -602,14 +602,13 @@ public class Main {
         centry = cgroup.getEntry("allowfrom");
         if (centry != null) {
             /* Allow the configured servers */
-            int nParts = centry.getNParts();
-            for (int x = 0; x < nParts; x++) {
+            int x, nParts = centry.getNParts();
+            for (x = 0; x < nParts; x++) {
                 serverInterface.allow(centry.getPart(x));
             }
         } else {
             LOGGER.warn("[BetterFSD]: No 'allowfrom' found, allowing everybody on the server port");
         }
-
         serverInterface.sendReset();
     }
 }
