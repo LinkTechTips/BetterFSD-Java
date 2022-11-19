@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
+import static org.linktechtips.constants.GlobalConstants.CERT_FILE_CHECK;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -93,6 +94,11 @@ public class Main {
         /* Read the system configuration */
         configure();
         LOGGER.info("[Config]: Read System Configuration OK");
+        if (mysqlmode.equals("true")) {
+            LOGGER.info("[MySQL]: RUN ON MySQL Mode");
+        }else{
+            LOGGER.info("[BetterFSD]: RUN ON File Mode");
+        }
         /* Create the management variables */
         createManageVars();
         LOGGER.info("[Management]: Management Variables OK");
@@ -140,7 +146,7 @@ public class Main {
             serverInterface.sendPing("*", data);
             prevLagCheck = now;
         }
-        if ((now - prevCertCheck) > GlobalConstants.CERT_FILE_CHECK) {
+        if ((now - prevCertCheck) > CERT_FILE_CHECK) {
             ConfigEntry entry;
             ConfigGroup sysgroup = configManager.getGroup("system");
             if (sysgroup != null) {
@@ -487,7 +493,7 @@ public class Main {
             Class.forName("com.mysql.cj.jdbc.Driver");
             conn = DriverManager.getConnection(sqlurl, sqluser, sqlpassword);
         } catch (ClassNotFoundException | SQLException e) {
-            LOGGER.info("[BetterFSD]: Exception in get mysql conn");
+            LOGGER.info("[MySQL]: Exception in get mysql conn");
             e.printStackTrace();
         }
     }
@@ -520,29 +526,33 @@ public class Main {
             }
         } else if (Objects.equals(mysqlmode, "true")) {
             getConn();
-            LOGGER.info("[BetterFSD]: Reading certificates from database");
+            LOGGER.info("[MySQL]: Reading certificates from database");
             if (StringUtils.isEmpty(sqltable)) {
-                LOGGER.error("[BetterFSD]: sqltable is empty. Please check your config file");
+                LOGGER.error("[MySQL]: sqltable is empty. Please check your config file");
             } else if (sqltable != null) try {
                 String sql = "SELECT * FROM " + sqltable;
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
+                long now = Support.mgmtime();
                 while (rs.next()) {
-                    String cid = rs.getString("cid");
-                    int level = rs.getInt("level");
-                    String pwd = rs.getString("password");
-                    Certificate tempcert = Certificate.getCert(cid);
-                    if (tempcert == null) {
-                        tempcert = new Certificate(cid, pwd, level, Support.mgmtime(), Server.myServer.getIdent());
-                        int mode = ProtocolConstants.CERT_ADD;
-                        if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
-                    } else {
-                        tempcert.setLiveCheck(1);
-                        if (tempcert.getPassword().equalsIgnoreCase(pwd) && level == tempcert.getLevel())
-                            return;
-                        tempcert.configure(pwd, level, Support.mgmtime(), Server.myServer.getIdent());
-                        int mode = ProtocolConstants.CERT_MODIFY;
-                        if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
+                    if ((now - prevCertCheck) >= CERT_FILE_CHECK) {
+                        prevCertCheck = now;
+                        String cid = rs.getString("cid");
+                        int level = rs.getInt("level");
+                        String pwd = rs.getString("password");
+                        Certificate tempcert = Certificate.getCert(cid);
+                        if (tempcert == null) {
+                            tempcert = new Certificate(cid, pwd, level, Support.mgmtime(), Server.myServer.getIdent());
+                            int mode = ProtocolConstants.CERT_ADD;
+                            if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
+                        } else {
+                            tempcert.setLiveCheck(1);
+                            if (tempcert.getPassword().equalsIgnoreCase(pwd) && level == tempcert.getLevel())
+                                return;
+                            tempcert.configure(pwd, level, Support.mgmtime(), Server.myServer.getIdent());
+                            int mode = ProtocolConstants.CERT_MODIFY;
+                            if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
+                        }
                     }
                 }
                 for (Certificate temp : Certificate.certs) {
@@ -552,10 +562,10 @@ public class Main {
                     }
                 }
             } catch (SQLException e) {
-                LOGGER.error("[BetterFSD]: Exception in readCert");
+                LOGGER.error("[MySQL]: Exception in readCert");
                 e.printStackTrace();
             } catch (Exception e) {
-                LOGGER.error("[BetterFSD]: N/A Exception on reading mysql");
+                LOGGER.error("[MySQL]: N/A Exception on reading mysql");
                 e.printStackTrace();
             }
         }
