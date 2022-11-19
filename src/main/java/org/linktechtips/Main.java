@@ -190,75 +190,149 @@ public class Main {
             ConfigEntry entry;
             ConfigGroup sysgroup = configManager.getGroup("system");
             if (sysgroup != null) {
-                if ((entry = sysgroup.getEntry("whazzup")) != null) {
-                    whazzupFile = entry.getData();
-                    String whazzupTemp = String.format("%s%s", whazzupFile, ".tmp");
-                    prevWhazzup = now;
-                    if (fileOpen == 0) {
-                        try (FileOutputStream wzfile = new FileOutputStream(whazzupTemp)) {
-                            fileOpen = 1;
-                            wzfile.write(String.format("%s%s\n", "![DateStamp]", Support.sprintGmtDate(now)).getBytes());
-                            wzfile.write(String.format("%s\n", "!GENERAL").getBytes());
-                            wzfile.write(String.format("%s = %d\n", "VERSION", 1).getBytes());
-                            wzfile.write(String.format("%s = %d\n", "RELOAD", 1).getBytes());
-                            wzfile.write(String.format("%s = %s\n", "UPDATE", Support.sprintGmt(now)).getBytes());
-                            wzfile.write(String.format("%s = %d\n", "CONNECTED CLIENTS", Client.clients.size()).getBytes());
-                            wzfile.write(String.format("%s = %d\n", "CONNECTED SERVERS", Server.servers.size()).getBytes());
-                            wzfile.write(String.format("%s\n", "!CLIENTS").getBytes());
-                            String dataSeg1, dataSeg2, dataSeg3, dataSeg4, dataSeg5, dataSeg6, dataSeg7;
-                            for (Client tempClient : Client.clients) {
-                                dataSeg1 = String.format("%s:%s:%s:%s", tempClient.getCallsign(), tempClient.getCid(),
-                                        tempClient.getRealName(), tempClient.getType() == ClientConstants.CLIENT_ATC ? "ATC" : "PILOT");
-                                if (tempClient.getFrequency() != 0 && tempClient.getFrequency() < 100_000) {
-                                    dataSeg2 = String.format("1%02d.%03d", tempClient.getFrequency() / 1000, tempClient.getFrequency() % 1000);
-                                } else {
-                                    dataSeg2 = "";
-                                }
+                String os = System.getProperty("os.name");
+                if (os != null && os.toLowerCase().startsWith("windows")) {
+                    if ((entry = sysgroup.getEntry("whazzup")) != null) {
+                        whazzupFile = entry.getData();
+                        String whazzupTemp = String.format("%s%s", whazzupFile, ".tmp");
+                        prevWhazzup = now;
+                        if (fileOpen == 0) {
+                            try (FileOutputStream wzfile = new FileOutputStream(whazzupTemp)) {
+                                fileOpen = 1;
+                                wzfile.write(String.format("%s%s\r\n", "![DateStamp]", Support.sprintGmtDate(now)).getBytes());
+                                wzfile.write(String.format("%s\r\n", "!GENERAL").getBytes());
+                                wzfile.write(String.format("%s = %d\r\n", "VERSION", 1).getBytes());
+                                wzfile.write(String.format("%s = %d\r\n", "RELOAD", 1).getBytes());
+                                wzfile.write(String.format("%s = %s\r\n", "UPDATE", Support.sprintGmt(now)).getBytes());
+                                wzfile.write(String.format("%s = %d\r\n", "CONNECTED CLIENTS", Client.clients.size()).getBytes());
+                                wzfile.write(String.format("%s = %d\r\n", "CONNECTED SERVERS", Server.servers.size()).getBytes());
+                                wzfile.write(String.format("%s\r\n", "!CLIENTS").getBytes());
+                                String dataSeg1, dataSeg2, dataSeg3, dataSeg4, dataSeg5, dataSeg6, dataSeg7;
+                                for (Client tempClient : Client.clients) {
+                                    dataSeg1 = String.format("%s:%s:%s:%s", tempClient.getCallsign(), tempClient.getCid(),
+                                            tempClient.getRealName(), tempClient.getType() == ClientConstants.CLIENT_ATC ? "ATC" : "PILOT");
+                                    if (tempClient.getFrequency() != 0 && tempClient.getFrequency() < 100_000) {
+                                        dataSeg2 = String.format("1%02d.%03d", tempClient.getFrequency() / 1000, tempClient.getFrequency() % 1000);
+                                    } else {
+                                        dataSeg2 = "";
+                                    }
 
-                                Flightplan tempFlightplan = tempClient.getPlan();
-                                if (tempClient.getLat() != 0 && tempClient.getAltitude() < 100_000 && tempClient.getLon() != 0) {
-                                    dataSeg3 = String.format("%f:%f:%d:%d", tempClient.getLat(), tempClient.getLon(), tempClient.getAltitude(), tempClient.getGroundSpeed());
-                                } else {
-                                    dataSeg3 = ":::";
-                                }
+                                    Flightplan tempFlightplan = tempClient.getPlan();
+                                    if (tempClient.getLat() != 0 && tempClient.getAltitude() < 100_000 && tempClient.getLon() != 0) {
+                                        dataSeg3 = String.format("%f:%f:%d:%d", tempClient.getLat(), tempClient.getLon(), tempClient.getAltitude(), tempClient.getGroundSpeed());
+                                    } else {
+                                        dataSeg3 = ":::";
+                                    }
 
-                                if (tempFlightplan != null) {
-                                    dataSeg4 = String.format("%s:%d:%s:%s:%s", tempFlightplan.getAircraft(),
-                                            tempFlightplan.getTasCruise(), tempFlightplan.getDepAirport(),
-                                            tempFlightplan.getAlt(), tempFlightplan.getDestAirport());
-                                } else {
-                                    dataSeg4 = "::::";
-                                }
-                                dataSeg5 = String.format("%s:%s:%d:%d:%d:%d", tempClient.getLocation().getIdent(), tempClient.getProtocol(), tempClient.getRating(), tempClient.getTransponder(), tempClient.getFacilityType(), tempClient.getVisualRange());
+                                    if (tempFlightplan != null) {
+                                        dataSeg4 = String.format("%s:%d:%s:%s:%s", tempFlightplan.getAircraft(),
+                                                tempFlightplan.getTasCruise(), tempFlightplan.getDepAirport(),
+                                                tempFlightplan.getAlt(), tempFlightplan.getDestAirport());
+                                    } else {
+                                        dataSeg4 = "::::";
+                                    }
+                                    dataSeg5 = String.format("%s:%s:%d:%d:%d:%d", tempClient.getLocation().getIdent(), tempClient.getProtocol(), tempClient.getRating(), tempClient.getTransponder(), tempClient.getFacilityType(), tempClient.getVisualRange());
 
-                                if (tempFlightplan != null) {
-                                    dataSeg6 = String.format("%d:%c:%d:%d:%d:%d:%d:%d:%s:%s:%s", tempFlightplan.getRevision(),
-                                            tempFlightplan.getType(), tempFlightplan.getDepTime(), tempFlightplan.getActDepTime(),
-                                            tempFlightplan.getHrsEnroute(), tempFlightplan.getMinEnroute(), tempFlightplan.getHrsFuel(),
-                                            tempFlightplan.getMinFuel(), tempFlightplan.getAltAirport(), tempFlightplan.getRemarks(), tempFlightplan.getRoute());
-                                } else {
-                                    dataSeg6 = "::::::::::";
-                                }
+                                    if (tempFlightplan != null) {
+                                        dataSeg6 = String.format("%d:%c:%d:%d:%d:%d:%d:%d:%s:%s:%s", tempFlightplan.getRevision(),
+                                                tempFlightplan.getType(), tempFlightplan.getDepTime(), tempFlightplan.getActDepTime(),
+                                                tempFlightplan.getHrsEnroute(), tempFlightplan.getMinEnroute(), tempFlightplan.getHrsFuel(),
+                                                tempFlightplan.getMinFuel(), tempFlightplan.getAltAirport(), tempFlightplan.getRemarks(), tempFlightplan.getRoute());
+                                    } else {
+                                        dataSeg6 = "::::::::::";
+                                    }
 
-                                dataSeg7 = String.format("::::::%s:%s", Support.sprintGmt(tempClient.getStartTime()), tempClient.getPbh());
-                                wzfile.write(String.format("%s:%s:%s:%s:%s:%s:%s\n", dataSeg1, dataSeg2, dataSeg3, dataSeg4, dataSeg5, dataSeg6, dataSeg7).getBytes());
+                                    dataSeg7 = String.format("::::::%s:%s", Support.sprintGmt(tempClient.getStartTime()), tempClient.getPbh());
+                                    wzfile.write(String.format("%s:%s:%s:%s:%s:%s:%s\r\n", dataSeg1, dataSeg2, dataSeg3, dataSeg4, dataSeg5, dataSeg6, dataSeg7).getBytes());
+                                }
+                                wzfile.write("!SERVERS\r\n".getBytes());
+                                for (Server tempServer : Server.servers) {
+                                    if ("n/a".equals(tempServer.getHostName())) {
+                                        String dataLine = String.format("%s:%s:%s:%s:%d", tempServer.getIdent(), tempServer.getHostName(), tempServer.getLocation(), tempServer.getName(), (tempServer.getFlags() & ServerConstants.SERVER_SILENT) != 0 ? 0 : 1);
+                                        wzfile.write(String.format("%s\r\n", dataLine).getBytes());
+                                    }
+                                }
+                            } catch (IOException e) {
+                                LOGGER.warn("[BetterFSD]: Open whazzup file failed.", e);
                             }
-                            wzfile.write("!SERVERS\n".getBytes());
-                            for (Server tempServer : Server.servers) {
-                                if ("n/a".equals(tempServer.getHostName())) {
-                                    String dataLine = String.format("%s:%s:%s:%s:%d", tempServer.getIdent(), tempServer.getHostName(), tempServer.getLocation(), tempServer.getName(), (tempServer.getFlags() & ServerConstants.SERVER_SILENT) != 0 ? 0 : 1);
-                                    wzfile.write(String.format("%s\n", dataLine).getBytes());
-                                }
-                            }
-                        } catch (IOException e) {
-                            LOGGER.warn("[BetterFSD]: Open whazzup file failed.", e);
+                            File realFile = new File(whazzupFile);
+                            realFile.delete();
+                            File tempFile = new File(whazzupTemp);
+                            tempFile.renameTo(realFile);
                         }
-                        File realFile = new File(whazzupFile);
-                        realFile.delete();
-                        File tempFile = new File(whazzupTemp);
-                        tempFile.renameTo(realFile);
+                        fileOpen = 0;
                     }
-                    fileOpen = 0;
+                } else {
+                    if ((entry = sysgroup.getEntry("whazzup")) != null) {
+                        whazzupFile = entry.getData();
+                        String whazzupTemp = String.format("%s%s", whazzupFile, ".tmp");
+                        prevWhazzup = now;
+                        if (fileOpen == 0) {
+                            try (FileOutputStream wzfile = new FileOutputStream(whazzupTemp)) {
+                                fileOpen = 1;
+                                wzfile.write(String.format("%s%s\n", "![DateStamp]", Support.sprintGmtDate(now)).getBytes());
+                                wzfile.write(String.format("%s\n", "!GENERAL").getBytes());
+                                wzfile.write(String.format("%s = %d\n", "VERSION", 1).getBytes());
+                                wzfile.write(String.format("%s = %d\n", "RELOAD", 1).getBytes());
+                                wzfile.write(String.format("%s = %s\n", "UPDATE", Support.sprintGmt(now)).getBytes());
+                                wzfile.write(String.format("%s = %d\n", "CONNECTED CLIENTS", Client.clients.size()).getBytes());
+                                wzfile.write(String.format("%s = %d\n", "CONNECTED SERVERS", Server.servers.size()).getBytes());
+                                wzfile.write(String.format("%s\n", "!CLIENTS").getBytes());
+                                String dataSeg1, dataSeg2, dataSeg3, dataSeg4, dataSeg5, dataSeg6, dataSeg7;
+                                for (Client tempClient : Client.clients) {
+                                    dataSeg1 = String.format("%s:%s:%s:%s", tempClient.getCallsign(), tempClient.getCid(),
+                                            tempClient.getRealName(), tempClient.getType() == ClientConstants.CLIENT_ATC ? "ATC" : "PILOT");
+                                    if (tempClient.getFrequency() != 0 && tempClient.getFrequency() < 100_000) {
+                                        dataSeg2 = String.format("1%02d.%03d", tempClient.getFrequency() / 1000, tempClient.getFrequency() % 1000);
+                                    } else {
+                                        dataSeg2 = "";
+                                    }
+
+                                    Flightplan tempFlightplan = tempClient.getPlan();
+                                    if (tempClient.getLat() != 0 && tempClient.getAltitude() < 100_000 && tempClient.getLon() != 0) {
+                                        dataSeg3 = String.format("%f:%f:%d:%d", tempClient.getLat(), tempClient.getLon(), tempClient.getAltitude(), tempClient.getGroundSpeed());
+                                    } else {
+                                        dataSeg3 = ":::";
+                                    }
+
+                                    if (tempFlightplan != null) {
+                                        dataSeg4 = String.format("%s:%d:%s:%s:%s", tempFlightplan.getAircraft(),
+                                                tempFlightplan.getTasCruise(), tempFlightplan.getDepAirport(),
+                                                tempFlightplan.getAlt(), tempFlightplan.getDestAirport());
+                                    } else {
+                                        dataSeg4 = "::::";
+                                    }
+                                    dataSeg5 = String.format("%s:%s:%d:%d:%d:%d", tempClient.getLocation().getIdent(), tempClient.getProtocol(), tempClient.getRating(), tempClient.getTransponder(), tempClient.getFacilityType(), tempClient.getVisualRange());
+
+                                    if (tempFlightplan != null) {
+                                        dataSeg6 = String.format("%d:%c:%d:%d:%d:%d:%d:%d:%s:%s:%s", tempFlightplan.getRevision(),
+                                                tempFlightplan.getType(), tempFlightplan.getDepTime(), tempFlightplan.getActDepTime(),
+                                                tempFlightplan.getHrsEnroute(), tempFlightplan.getMinEnroute(), tempFlightplan.getHrsFuel(),
+                                                tempFlightplan.getMinFuel(), tempFlightplan.getAltAirport(), tempFlightplan.getRemarks(), tempFlightplan.getRoute());
+                                    } else {
+                                        dataSeg6 = "::::::::::";
+                                    }
+
+                                    dataSeg7 = String.format("::::::%s:%s", Support.sprintGmt(tempClient.getStartTime()), tempClient.getPbh());
+                                    wzfile.write(String.format("%s:%s:%s:%s:%s:%s:%s\n", dataSeg1, dataSeg2, dataSeg3, dataSeg4, dataSeg5, dataSeg6, dataSeg7).getBytes());
+                                }
+                                wzfile.write("!SERVERS\n".getBytes());
+                                for (Server tempServer : Server.servers) {
+                                    if ("n/a".equals(tempServer.getHostName())) {
+                                        String dataLine = String.format("%s:%s:%s:%s:%d", tempServer.getIdent(), tempServer.getHostName(), tempServer.getLocation(), tempServer.getName(), (tempServer.getFlags() & ServerConstants.SERVER_SILENT) != 0 ? 0 : 1);
+                                        wzfile.write(String.format("%s\n", dataLine).getBytes());
+                                    }
+                                }
+                            } catch (IOException e) {
+                                LOGGER.warn("[BetterFSD]: Open whazzup file failed.", e);
+                            }
+                            File realFile = new File(whazzupFile);
+                            realFile.delete();
+                            File tempFile = new File(whazzupTemp);
+                            tempFile.renameTo(realFile);
+                        }
+                        fileOpen = 0;
+                    }
                 }
                 if ((entry = sysgroup.getEntry("whazzupjson")) != null) {
                     whazzupjsonFile = entry.getData();
