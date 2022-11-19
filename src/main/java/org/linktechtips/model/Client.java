@@ -185,9 +185,6 @@ public class Client {
     public long getPbh() {
         return pbh;
     }
-    public long getHeading() {
-        return ((pbh & 4092) >> 2 ) / 1024 * 360;
-    }
     public void setPbh(long pbh) {
         this.pbh = pbh;
     }

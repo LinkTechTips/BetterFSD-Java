@@ -240,7 +240,7 @@ public class Main {
                                     dataSeg6 = "::::::::::";
                                 }
 
-                                dataSeg7 = String.format("::::::%s:%s", Support.sprintGmt(tempClient.getStartTime()), tempClient.getHeading());
+                                dataSeg7 = String.format("::::::%s:%s", Support.sprintGmt(tempClient.getStartTime()), tempClient.getPbh());
                                 wzfile.write(String.format("%s:%s:%s:%s:%s:%s:%s\n", dataSeg1, dataSeg2, dataSeg3, dataSeg4, dataSeg5, dataSeg6, dataSeg7).getBytes());
                             }
                             wzfile.write("!SERVERS\n".getBytes());
@@ -292,7 +292,7 @@ public class Main {
                                 } else {
                                     dataSeg4 = ",\"plan\":{}";
                                 }
-                                dataSeg5 = String.format(",\"heading\":%s,\"transponder\":%d,\"facilitytype\":%d", tempClient.getHeading(), tempClient.getTransponder(), tempClient.getFacilityType());
+                                dataSeg5 = String.format(",\"pbh\":%s,\"transponder\":%d,\"facilitytype\":%d", tempClient.getPbh(), tempClient.getTransponder(), tempClient.getFacilityType());
 
                                 dataSeg6 = String.format(",\"starttime\":%s},", Support.sprintGmt(tempClient.getStartTime()));
                                 wzfile.write(String.format("%s%s%s%s%s%s", dataSeg1, dataSeg2, dataSeg3, dataSeg4, dataSeg5, dataSeg6).getBytes());
@@ -526,7 +526,7 @@ public class Main {
             }
         } else if (Objects.equals(mysqlmode, "true")) {
             getConn();
-            LOGGER.info("[MySQL]: Reading certificates from database");
+            LOGGER.debug("[MySQL]: Reading certificates from database");
             if (StringUtils.isEmpty(sqltable)) {
                 LOGGER.error("[MySQL]: sqltable is empty. Please check your config file");
             } else if (sqltable != null) try {
