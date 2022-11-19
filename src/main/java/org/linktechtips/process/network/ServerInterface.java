@@ -329,7 +329,7 @@ public class ServerInterface extends TcpInterface {
         assemble(buf, cmdNum, to, from, bi, pc, hc, data);
 
         if (direction != null) {
-            direction.uslprintf("%u\n", slCheck);
+            direction.uslprintf("%d \n", slCheck);
             return;
         }
 
