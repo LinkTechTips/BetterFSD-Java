@@ -6,8 +6,8 @@
 package org.linktechtips.constants;
 
 public class GlobalConstants {
-    public static final String PRODUCT = "BetterFSD Java Edition Version 1.0.0 By 4185 QQ:3174327625";
-    public static final String VERSION = "V1.0.0";
+    public static final String PRODUCT = "BetterFSD Java Edition Version 1.1.0 By 4185 QQ:3174327625";
+    public static final String VERSION = "V1.1.0";
     public static final int NEED_REVISION = 9;
 
     /**
