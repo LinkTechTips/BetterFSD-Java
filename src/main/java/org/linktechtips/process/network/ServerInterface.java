@@ -328,10 +328,6 @@ public class ServerInterface extends TcpInterface {
         /* Assemble the packet */
         assemble(buf, cmdNum, to, from, bi, pc, hc, data);
 
-        if (direction != null) {
-            direction.uslprintf("%d \n", slCheck);
-            return;
-        }
 
         /* Now look at the destionation field, to determine the route for this
       packet */
