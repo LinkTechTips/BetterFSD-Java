@@ -28,3 +28,5 @@ GPL-3.0第7节中的附加条款
 * 内置语音实现
 * Remark同步
 * !!BetterFSD 命令，用于服务器管理
+## 已知问题
+* 无法操控Euroscope Sweatbox中的机组
