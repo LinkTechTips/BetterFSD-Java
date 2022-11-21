@@ -8,4 +8,5 @@ module BetterFSD.Java {
     requires slf4j.api;
     requires java.sql;
     requires mysql.connector.java;
+    requires jbcrypt;
 }

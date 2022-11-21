@@ -28,8 +28,6 @@ import org.linktechtips.process.network.SystemInterface;
 import org.linktechtips.support.Support;
 import org.slf4j.Logger;
 
-import java.sql.*;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -41,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -96,7 +95,7 @@ public class Main {
         LOGGER.info("[Config]: Read System Configuration OK");
         if (mysqlmode.equals("true")) {
             LOGGER.info("[MySQL]: RUN ON MySQL Mode");
-        }else{
+        } else {
             LOGGER.info("[BetterFSD]: RUN ON File Mode");
         }
         /* Create the management variables */
@@ -170,7 +169,7 @@ public class Main {
                     }
                 } else if (Objects.equals(mysqlmode, "true")) {
                     if ((sysgroup.getEntry("sqlurl")) != null) {
-                        if ((sysgroup.getEntry("sqluser")) != null){
+                        if ((sysgroup.getEntry("sqluser")) != null) {
                             if (sysgroup.getEntry("sqlpassword") != null) {
                                 readCert();
                             } else {
@@ -531,10 +530,10 @@ public class Main {
             if ((entry = system.getEntry("whazzupjson")) != null) {
                 whazzupjsonFile = entry.getData();
             }
+        }
+        configMyServer();
+        readCert();
     }
-    configMyServer();
-    readCert();
-}
 
     void handleCidLine(@NotNull String line) {
         Certificate tempcert;
@@ -562,6 +561,7 @@ public class Main {
         }
         if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
     }
+
     public static void getConn() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -571,6 +571,7 @@ public class Main {
             e.printStackTrace();
         }
     }
+
     void readCert() {
         if (Objects.equals(mysqlmode, "false")) {
             if (StringUtils.isBlank(certFile)) return;
@@ -608,25 +609,25 @@ public class Main {
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
                 long now = Support.mgmtime();
-                while (rs.next()) {
-                    if ((now - prevCertCheck) >= CERT_FILE_CHECK) {
-                        prevCertCheck = now;
-                        String cid = rs.getString("cid");
-                        int level = rs.getInt("level");
-                        String pwd = rs.getString("password");
-                        Certificate tempcert = Certificate.getCert(cid);
-                        if (tempcert == null) {
-                            tempcert = new Certificate(cid, pwd, level, Support.mgmtime(), Server.myServer.getIdent());
-                            int mode = ProtocolConstants.CERT_ADD;
-                            if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
-                        } else {
-                            tempcert.setLiveCheck(1);
-                            if (tempcert.getPassword().equalsIgnoreCase(pwd) && level == tempcert.getLevel())
-                                return;
-                            tempcert.configure(pwd, level, Support.mgmtime(), Server.myServer.getIdent());
-                            int mode = ProtocolConstants.CERT_MODIFY;
-                            if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
-                        }
+                if ((now - prevCertCheck) >= CERT_FILE_CHECK) {
+                    prevCertCheck = now;
+                    String cid = rs.getString("cid");
+                    int level = rs.getInt("level");
+                    String pwd = rs.getString("password");
+                    Certificate tempcert = Certificate.getCert(cid);
+                    if (tempcert == null) {
+                        tempcert = new Certificate(cid, pwd, level, Support.mgmtime(), Server.myServer.getIdent());
+                        int mode = ProtocolConstants.CERT_ADD;
+                        if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
+                        rs.close();
+                    } else {
+                        tempcert.setLiveCheck(1);
+                        if (tempcert.getPassword().equalsIgnoreCase(pwd) && level == tempcert.getLevel())
+                            return;
+                        tempcert.configure(pwd, level, Support.mgmtime(), Server.myServer.getIdent());
+                        int mode = ProtocolConstants.CERT_MODIFY;
+                        if (serverInterface != null) serverInterface.sendCert("*", mode, tempcert, null);
+                        rs.close();
                     }
                 }
                 for (Certificate temp : Certificate.certs) {

@@ -5,11 +5,18 @@
 package org.linktechtips.model;
 
 import org.linktechtips.constants.GlobalConstants;
+import org.linktechtips.process.config.ConfigEntry;
+import org.linktechtips.process.config.ConfigGroup;
 import org.linktechtips.support.Support;
 import org.jetbrains.annotations.Nullable;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import static org.linktechtips.Main.configManager;
 
 public class Certificate {
     public static final List<Certificate> certs = new ArrayList<>();
@@ -19,12 +26,26 @@ public class Certificate {
     private int level, liveCheck;
 
     private long prevVisit, creation;
-
+    private String passwordhash;
+    private void configure() {
+        ConfigEntry entry;
+        ConfigGroup system = configManager.getGroup("system");
+        if (system != null) {
+            if ((entry = system.getEntry("passwordhash")) != null) {
+                passwordhash = entry.getData();
+            }
+        }
+    }
     public Certificate(String c, String p, int l, long crea, String o) {
         certs.add(this);
         liveCheck = 1;
         cid = c;
-        password = p;
+        configure();
+        if (Objects.equals(passwordhash, "true")) {
+            password = BCrypt.hashpw(p, BCrypt.gensalt());
+        } else {
+            password = p;
+        }
         level = l;
         creation = crea;
         origin = o;
